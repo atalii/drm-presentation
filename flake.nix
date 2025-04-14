@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/release-24.11";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
 
   outputs = { self, nixpkgs }: {
     devShells.x86_64-linux.default =
@@ -14,5 +14,24 @@
 
         nativeBuildInputs = with pkgs; [ meson ninja pkg-config cmake libdrm systemdLibs ];
       };
+
+      
+    packages.x86_64-linux.test-vm = self.nixosConfigurations.test-vm.config.system.build.vm;
+
+    nixosConfigurations.test-vm = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+	{
+          system.stateVersion = "24.11";
+	  users.users.admin = {
+	    isNormalUser = true;
+	    password = "admin";
+	    extraGroups = [ "wheel" ];
+	  };
+
+	  environment.systemPackages = [ self.packages.x86_64-linux.default ];
+	}
+      ];
+    };
   };
 }
